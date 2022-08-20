@@ -1,6 +1,7 @@
 # Backend API
 
 from flask import Flask, Response, request
+from twilio.rest import Client
 import pymongo
 import os
 
@@ -14,6 +15,17 @@ db = client.ht6
 
 db_transactions = db.transactions
 db_users = db.users
+
+# Twilio Vars
+
+twilio_account_sid = os.environ['TWILIO_ACCOUNT_SID']
+twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
+twilio_client = Client(twilio_account_sid, twilio_auth_token)
+twilio_phone_number = '+12058399786'
+
+# Phone numbers who we are expecting responses from
+
+phone_numbers_being_waited_for = []
 
 @app.route("/")
 def index():
@@ -45,6 +57,14 @@ def get_daily_spend_limit():
 
     return Response(f"{{'daily_limit', '{spend_limit}'}}", status=200, mimetype='application/json')
 
+# Usage: /get_remaining_daily_limit?patient=<patient_username>
+@app.route("/get_remaining_daily_limit")
+def get_remaining_daily_spend_limit():
+    patient = request.args.get('patient')
+    remaining_spend_limit = get_patient_record(patient)["remaining_spend_limit"]
+
+    return Response(f"{{'remaining_spend_limit', '{remaining_spend_limit}'}}", status=200, mimetype='application/json')
+
 # Usage: /get_managed_balance?patient=<patient_username>
 @app.route("/get_managed_balance")
 def get_managed_balance():
@@ -53,8 +73,26 @@ def get_managed_balance():
 
     return Response(f"{{'managed_balance', '{managed_balance}'}}", status=200, mimetype='application/json')
 
-# Usage: /make_purchase?patient=<patient_username>
-# @app.route("/make_purchase")
+# Usage: /make_purchase?patient=<patient_username>&price=<int>
+@app.route("/make_purchase")
+def make_purchase():
+    patient = request.args.get('patient')
+    price = float(request.args.get('price'))
+    patient_record = get_patient_record(patient)
+    guardian_phone_number = patient_record["guardian_phone_number"]
+    patient_name = patient_record["full_name"]
+
+    if(float(patient_record["managed_account_balance"]) < price):
+        return Response("{'error', 'not enough funds'}", status=403, mimetype='application/json')
+
+    if(float(patient_record["daily_spend_limit"]) < price):
+        message = twilio_client.messages.create(
+            body=f'HeimWallet: Authorize ${price} transaction from {patient_name}? Location: (insert location)\n\nReply YES to authorize, NO to decline',
+            from_=twilio_phone_number,
+            to=guardian_phone_number
+        )
+
+    return Response(f"{{'request_auth', '{guardian_phone_number}'}}", status=200, mimetype='application/json')
 
 # Internal helper function to get patient record from database
 def get_patient_record(patient):
