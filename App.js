@@ -1,7 +1,10 @@
 import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Image, View, TouchableWithoutFeedback } from 'react-native';
+import { ActivityIndicator, StyleSheet, Image, View, TouchableWithoutFeedback } from 'react-native';
 import { Button, Provider as PaperProvider, Text, TextInput, IconButton } from 'react-native-paper';
+
+
+const transactionAmount = 510;
 
 
 export default function App() {
@@ -10,12 +13,14 @@ export default function App() {
 
   const [test, setTest] = React.useState("");
 
-  const [view, setView] = React.useState("manager"); // login, patient, manager, hold, await, success
+  const [view, setView] = React.useState("patient"); // login, patient, manager, hold, await, success
 
   // Outputs for Patient View
   const [dailyLimit, setDailyLimit] = React.useState(0);
   const [remainingDailyLimit, setRemainingDailyLimit] = React.useState(0);
   const [managedBalance, setManagedBalance] = React.useState(0);
+
+  const [paymentApproved, setPaymentApproved] = React.useState(false);
 
   // API CALLS --------
   const getDailyLimit = () => {
@@ -55,7 +60,7 @@ export default function App() {
   };
 
   const makePurchase = () => {
-    fetch('https://ht6-heimwallet.herokuapp.com/make_purchase?patient=fjones&price=501&longitude=1&latitude=1')
+    fetch(`https://ht6-heimwallet.herokuapp.com/make_purchase?patient=fjones&price=${transactionAmount}&longitude=-80.51589796397006&latitude=43.47040761593818`)
       .then(response => response.json())
       .then(json => {
         console.log(json);
@@ -64,6 +69,23 @@ export default function App() {
         console.error(error);
       });
   };
+
+  const checkForAuth = () => {
+    fetch('https://ht6-heimwallet.herokuapp.com/check_for_auth?patient=fjones')
+      .then(response => response.json())
+      .then(json => {
+        if (json.status === "approved") {
+          setPaymentApproved(true);
+        } else {
+          setPaymentApproved(false);
+        }
+        console.log(json);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
 
   // LOGIN / VIEW API CALLS --------
   function loginAttempt() {
@@ -82,8 +104,14 @@ export default function App() {
     getDailyLimit();
     getRemainingDailyLimit();
   } else if (view === "hold") {
-    // makePurchase(); TODO: Remove comment
-  } else if (view === "manager") {
+    makePurchase();
+  } else if (view === "await") {
+    checkForAuth();
+  } else if (view === "success") {
+    checkForAuth();
+  }
+
+  else if (view === "manager") {
     getDailyLimit();
     getRemainingDailyLimit();
     getManagedBalance();
@@ -152,7 +180,7 @@ export default function App() {
           <TouchableWithoutFeedback onPress={() => { setView("hold") }}>
             <View style={styles.transferBox}>
 
-              <Image source={require('./assets/money3.png')} style={{ backgroundColor: 'white', width: 85, height: 85, resizeMode: 'contain'}} />
+              <Image source={require('./assets/money3.png')} style={{ backgroundColor: 'white', width: 85, height: 85, resizeMode: 'contain' }} />
 
               <Text variant='titleLarge' style={{ fontWeight: 'bold' }}>Pay</Text>
             </View>
@@ -181,9 +209,16 @@ export default function App() {
       }
 
       {view == "hold" &&
-        <TouchableWithoutFeedback onPress={() => { setView("await") }}>
+        <TouchableWithoutFeedback onPress={() => {
+          if (transactionAmount <= remainingDailyLimit) {
+            setView("success");
+          } else {
+            setView("await");
+          }
+        }}>
           <View style={styles.holdContainer}>
-            <Text variant="displaySmall" style={{ fontWeight: 'bold', textAlign: 'center' }} >Hold your phone over payment terminal...</Text>
+            <Image source={require('./assets/hold_phone.png')} style={{ margin: 25 }} />
+            <Text variant="titleLarge" style={{ fontWeight: 'bold', textAlign: 'center' }} >Hold your phone over payment terminal...</Text>
           </View>
         </TouchableWithoutFeedback>
       }
@@ -191,7 +226,9 @@ export default function App() {
       {view == "await" &&
         <TouchableWithoutFeedback onPress={() => { setView("success") }}>
           <View style={styles.holdContainer}>
-            <Text variant="displaySmall" style={{ fontWeight: 'bold', textAlign: 'center' }} >Awaiting Confirmation...</Text>
+            <ActivityIndicator size="large" color='#6C447C' style={{ margin: 25 }} />
+            <Text variant="titleLarge" style={{ fontWeight: 'bold', textAlign: 'center' }} >Awaiting Confirmation...</Text>
+            <Text style={{ textAlign: 'center'}}> Transaction of ${transactionAmount} greater than remaining daily limit of ${remainingDailyLimit} </Text>
           </View>
         </TouchableWithoutFeedback>
       }
@@ -199,7 +236,8 @@ export default function App() {
       {view == "success" &&
         <TouchableWithoutFeedback onPress={() => { setView("patient") }}>
           <View style={styles.holdContainer}>
-            <Text variant="displaySmall" style={{ fontWeight: 'bold', textAlign: 'center' }} >Payment Successful!</Text>
+            {paymentApproved && <Image source={require('./assets/success.png')} style={{ margin: 25 }} />}
+            <Text variant="titleLarge" style={{ fontWeight: 'bold', textAlign: 'center' }} >Payment of ${transactionAmount} {paymentApproved ? "Successful!" : "Failed."}</Text>
           </View>
         </TouchableWithoutFeedback>
       }
