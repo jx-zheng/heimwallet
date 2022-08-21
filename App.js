@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Image, View } from 'react-native';
+import { StyleSheet, Image, View, TouchableWithoutFeedback } from 'react-native';
 import { Button, Provider as PaperProvider, Text, TextInput, IconButton } from 'react-native-paper';
 
 
@@ -10,27 +10,51 @@ export default function App() {
 
   const [test, setTest] = React.useState("");
 
-  const [view, setView] = React.useState("patient"); // login, patient, manager
+  const [view, setView] = React.useState("manager"); // login, patient, manager, hold, await, success
 
   // Outputs for Patient View
   const [dailyLimit, setDailyLimit] = React.useState(0);
+  const [remainingDailyLimit, setRemainingDailyLimit] = React.useState(0);
 
   // API CALLS --------
   const getDailyLimit = () => {
     fetch('https://ht6-heimwallet.herokuapp.com/get_daily_limit?patient=fjones')
-    .then(response => response.json())
-    .then(json => {
-      console.log(json);
-      setDailyLimit(json.daily_limit);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+      .then(response => response.json())
+      .then(json => {
+        console.log(json);
+        setDailyLimit(json.daily_limit);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  const getRemainingDailyLimit = () => {
+    fetch('https://ht6-heimwallet.herokuapp.com/get_remaining_daily_limit?patient=fjones')
+      .then(response => response.json())
+      .then(json => {
+        console.log(json);
+        setRemainingDailyLimit(json.remaining_spend_limit);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  const makePurchase = () => {
+    fetch('https://ht6-heimwallet.herokuapp.com/make_purchase?patient=fjones&price=501&longitude=1&latitude=1')
+      .then(response => response.json())
+      .then(json => {
+        console.log(json);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
   };
 
   // LOGIN / VIEW --------
   function loginAttempt() {
-    if (username === "aryaman") {
+    if (username === "Frank") {
       // setTest("logged in as patient");
       setView("patient");
     } else if (username === "jason") {
@@ -43,6 +67,9 @@ export default function App() {
 
   if (view === "patient") {
     getDailyLimit();
+    getRemainingDailyLimit();
+  } else if (view === "hold") {
+    // makePurchase(); TODO: Remove this!!
   }
 
   return (
@@ -71,7 +98,7 @@ export default function App() {
 
           <Button mode='contained' style={styles.loginButton} onPress={() => loginAttempt()}> Login </Button>
 
-          <Text style={{ alignItems: 'center', alignSelf: 'center'}}>
+          <Text style={{ alignItems: 'center', alignSelf: 'center' }}>
             {test}
           </Text>
 
@@ -83,7 +110,7 @@ export default function App() {
         <View style={styles.patientContainer}>
           <Text variant="titleLarge" style={styles.helloText}>
             Hi
-            <Text style={{ fontWeight: 'bold' }} > Aryaman </Text> 👋
+            <Text style={{ fontWeight: 'bold' }} > Frank </Text> 👋
             {'\n'}
             Welcome back!
           </Text>
@@ -95,7 +122,7 @@ export default function App() {
             </Text>
 
             <Text variant="titleLarge" style={{ alignSelf: 'center', alignItems: 'center', fontWeight: 'bold' }} >
-              CAD $123
+              CAD ${remainingDailyLimit}
               {'\n'}
             </Text>
 
@@ -105,12 +132,14 @@ export default function App() {
             </Text>
           </View>
 
-          <View style={styles.transferBox}>
+          <TouchableWithoutFeedback onPress={() => { setView("hold") }}>
+            <View style={styles.transferBox}>
 
-            <Image source={require('./assets/money.png')} />
+              <Image source={require('./assets/money.png')} />
 
-            <Text variant='titleLarge' style={{ fontWeight: 'bold' }}>Pay</Text>
-          </View>
+              <Text variant='titleLarge' style={{ fontWeight: 'bold' }}>Pay</Text>
+            </View>
+          </TouchableWithoutFeedback>
 
           <View style={styles.sosBox}>
 
@@ -126,17 +155,48 @@ export default function App() {
 
           </View>
 
-          <View style={{ display: 'flex', flexDirection: 'row', alignSelf:'center', paddingTop: 40}}>
-          <IconButton iconColor="#6C447C" icon="home" onPress={() => {setView("login")}} />
-          <IconButton iconColor="#6C447C" icon="menu" onPress={() => {setView("login")}} />
+          <View style={{ display: 'flex', flexDirection: 'row', alignSelf: 'center', paddingTop: 40 }}>
+            <IconButton iconColor="#6C447C" icon="home" onPress={() => { setView("login") }} />
+            <IconButton iconColor="#6C447C" icon="menu" onPress={() => { setView("login") }} />
 
           </View>
 
         </View>
       }
 
-      {view == ""
+      {view == "hold" &&
+        <TouchableWithoutFeedback onPress={() => { setView("await") }}>
+          <View style={styles.holdContainer}>
+            <Text variant="displaySmall" style={{ fontWeight: 'bold', textAlign: 'center' }} >Hold your phone over payment terminal...</Text>
+          </View>
+        </TouchableWithoutFeedback>
+      }
 
+      {view == "await" &&
+        <TouchableWithoutFeedback onPress={() => { setView("success") }}>
+          <View style={styles.holdContainer}>
+            <Text variant="displaySmall" style={{ fontWeight: 'bold', textAlign: 'center' }} >Awaiting Confirmation...</Text>
+          </View>
+        </TouchableWithoutFeedback>
+      }
+
+      {view == "success" &&
+        <TouchableWithoutFeedback onPress={() => { setView("patient") }}>
+          <View style={styles.holdContainer}>
+            <Text variant="displaySmall" style={{ fontWeight: 'bold', textAlign: 'center' }} >Payment Successful!</Text>
+          </View>
+        </TouchableWithoutFeedback>
+      }
+
+      {view == "manager" &&
+        <View style={styles.managerContainer}>
+          <Text variant="titleLarge" style={styles.helloText}>
+            Hi
+            <Text style={{ fontWeight: 'bold' }} > Colleen </Text> 👋
+            {'\n'}
+            Welcome back!
+          </Text>
+        </View>
       }
     </PaperProvider>
   );
@@ -243,6 +303,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.8,
     shadowRadius: 4,
     elevation: 5
-  }
+  },
+
+  // HOLD, AWAIT and SUCCESS
+  holdContainer: {
+    display: 'flex',
+    marginTop: 'auto',
+    marginBottom: 'auto',
+    paddingLeft: '10%',
+    paddingRight: '10%',
+    alignItems: 'center',
+    textAlign: 'center',
+  },
+
+  // MANAGER
+  managerContainer: {
+    display: 'flex',
+    paddingTop: '15%',
+    paddingLeft: '5%',
+    paddingRight: '5%',
+  },
 
 });
