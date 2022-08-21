@@ -4,7 +4,7 @@ import { ActivityIndicator, StyleSheet, Image, View, TouchableWithoutFeedback } 
 import { Button, Provider as PaperProvider, Text, TextInput, IconButton } from 'react-native-paper';
 
 
-const transactionAmount = 510;
+const transactionAmount = 521;
 
 
 export default function App() {
@@ -167,12 +167,13 @@ export default function App() {
             </Text>
 
             <Text variant="titleLarge" style={{ alignSelf: 'center', alignItems: 'center', fontWeight: 'bold' }} >
-              CAD ${remainingDailyLimit}
+              <Text style={{ fontWeight: 'normal'}}>CAD</Text> ${remainingDailyLimit}
               {'\n'}
             </Text>
 
-            <Text variant="titleSmall" style={{ alignSelf: 'center', alignItems: 'center' }}>
+            <Text variant="titleSmall" style={{marginLeft: 10}}>
               Daily Allowance: ${dailyLimit}
+              <Text>                        21 Aug 2022</Text>
               {'\n'}
             </Text>
           </View>
@@ -201,8 +202,7 @@ export default function App() {
           </View>
 
           <View style={{ display: 'flex', flexDirection: 'row', alignSelf: 'center', paddingTop: 40 }}>
-            <IconButton iconColor="#6C447C" icon="home" onPress={() => { setView("login") }} />
-            <IconButton iconColor="#6C447C" icon="menu" onPress={() => { setView("login") }} />
+           <IconButton iconColor="#000000" icon="home" onPress={() => { setView("login") }} />
           </View>
 
         </View>
@@ -227,7 +227,7 @@ export default function App() {
         <TouchableWithoutFeedback onPress={() => { setView("success") }}>
           <View style={styles.holdContainer}>
             <ActivityIndicator size="large" color='#6C447C' style={{ margin: 25 }} />
-            <Text variant="titleLarge" style={{ fontWeight: 'bold', textAlign: 'center' }} >Awaiting Confirmation...</Text>
+            <Text variant="titleLarge" style={{ fontWeight: 'bold', textAlign: 'center' }} >Awaiting Confirmation from Colleen Jones</Text>
             <Text style={{ textAlign: 'center'}}> Transaction of ${transactionAmount} greater than remaining daily limit of ${remainingDailyLimit} </Text>
           </View>
         </TouchableWithoutFeedback>
@@ -335,8 +335,7 @@ export default function App() {
           </View>
 
           <View style={{ display: 'flex', flexDirection: 'row', alignSelf: 'center', paddingTop: 40 }}>
-            <IconButton iconColor="#6C447C" icon="home" onPress={() => { setView("login") }} />
-            <IconButton iconColor="#6C447C" icon="menu" onPress={() => { setView("login") }} />
+            <IconButton iconColor="#000000" icon="home" onPress={() => { setView("login") }} />
           </View>
 
         </View>
