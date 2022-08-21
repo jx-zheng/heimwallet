@@ -15,3 +15,4 @@ twilio==7.12.1
 urllib3==1.26.11
 Werkzeug==2.2.2
 Flask-Cors==3.0.10
+googlemaps==4.6.0

@@ -4,15 +4,16 @@ from flask import Flask, Response, request
 from flask_cors import CORS
 from twilio.rest import Client
 from twilio.twiml.messaging_response import MessagingResponse
+import googlemaps
 import pymongo
 import os
 
 app = Flask(__name__)
 CORS(app)
 
-# Database Vars
+# MongoDB Vars
 
-mongopw = os.environ.get('mongopw')
+mongopw = os.environ['mongopw']
 client = pymongo.MongoClient(f"mongodb://jxzheng:{mongopw}@ac-ya81al2-shard-00-00.3p6clyd.mongodb.net:27017,ac-ya81al2-shard-00-01.3p6clyd.mongodb.net:27017,ac-ya81al2-shard-00-02.3p6clyd.mongodb.net:27017/?ssl=true&replicaSet=atlas-udfjiq-shard-0&authSource=admin&retryWrites=true&w=majority")
 db = client.ht6
 
@@ -26,6 +27,10 @@ twilio_account_sid = os.environ['TWILIO_ACCOUNT_SID']
 twilio_auth_token = os.environ['TWILIO_AUTH_TOKEN']
 twilio_client = Client(twilio_account_sid, twilio_auth_token)
 twilio_phone_number = '+12058399786'
+
+# Google Maps Vars
+
+gmaps = googlemaps.Client(key=os.environ['GMAPS_API_KEY'])
 
 @app.route("/")
 def index():
@@ -76,7 +81,7 @@ def get_managed_balance():
 
     return Response(f"{{\"managed_balance\": {formatted_mb}}}", status=200, mimetype='application/json')
 
-# Usage: /make_purchase?patient=<patient_username>&price=<int>
+# Usage: /make_purchase?patient=<patient_username>&price=<int>&longitude=<float>&latitude=<float>
 @app.route("/make_purchase")
 def make_purchase():
     patient = request.args.get('patient')
@@ -89,9 +94,14 @@ def make_purchase():
     remaining_spend_limit = float(patient_record["remaining_spend_limit"])
     managed_account_balance = float(patient_record["managed_account_balance"])
 
+    # Google Maps Reverse Geocode to store in records and send to guardian
+    longitude = request.args.get('longitude')
+    latitude = request.args.get('latitude')
+    address = get_reverse_geocoded_address(latitude, longitude)
+
     if(remaining_spend_limit < price):
         message = twilio_client.messages.create(
-            body=f'HeimWallet: Authorize ${formatted_price} transaction from {patient_name}? Location: (insert location)\n\nReply YES to authorize, NO to decline',
+            body=f'HeimWallet: Authorize ${formatted_price} transaction from {patient_name}? Location: {address}\n\nReply YES to authorize, NO to decline',
             from_=twilio_phone_number,
             to=guardian_phone_number
         )
@@ -208,3 +218,11 @@ def delete_pending_response(guardian_phone_number):
     pending_response_query = {"guardian_phone_number": guardian_phone_number}
     db_pending_responses.delete_one(pending_response_query)
     return None
+
+# Internal helper function to access GMaps API in order to obtain reverse geocoded address
+def get_reverse_geocoded_address(latitude, longitude):
+    result = gmaps.reverse_geocode((latitude, longitude))
+    if(len(result)):
+        return result[0]['formatted_address']
+    else:
+        return None
