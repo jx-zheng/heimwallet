@@ -15,6 +15,7 @@ export default function App() {
   // Outputs for Patient View
   const [dailyLimit, setDailyLimit] = React.useState(0);
   const [remainingDailyLimit, setRemainingDailyLimit] = React.useState(0);
+  const [managedBalance, setManagedBalance] = React.useState(0);
 
   // API CALLS --------
   const getDailyLimit = () => {
@@ -41,6 +42,18 @@ export default function App() {
       });
   };
 
+  const getManagedBalance = () => {
+    fetch('https://ht6-heimwallet.herokuapp.com/get_managed_balance?patient=fjones')
+      .then(response => response.json())
+      .then(json => {
+        console.log(json);
+        setManagedBalance(json.managed_balance);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
   const makePurchase = () => {
     fetch('https://ht6-heimwallet.herokuapp.com/make_purchase?patient=fjones&price=501&longitude=1&latitude=1')
       .then(response => response.json())
@@ -52,12 +65,12 @@ export default function App() {
       });
   };
 
-  // LOGIN / VIEW --------
+  // LOGIN / VIEW API CALLS --------
   function loginAttempt() {
-    if (username === "Frank") {
+    if (username === "frank") {
       // setTest("logged in as patient");
       setView("patient");
-    } else if (username === "jason") {
+    } else if (username === "colleen") {
       // setTest("logged in as guardian");
       setView("manager");
     } else {
@@ -69,7 +82,11 @@ export default function App() {
     getDailyLimit();
     getRemainingDailyLimit();
   } else if (view === "hold") {
-    // makePurchase(); TODO: Remove this!!
+    // makePurchase(); TODO: Remove comment
+  } else if (view === "manager") {
+    getDailyLimit();
+    getRemainingDailyLimit();
+    getManagedBalance();
   }
 
   return (
@@ -135,7 +152,7 @@ export default function App() {
           <TouchableWithoutFeedback onPress={() => { setView("hold") }}>
             <View style={styles.transferBox}>
 
-              <Image source={require('./assets/money.png')} />
+              <Image source={require('./assets/money3.png')} style={{ backgroundColor: 'white', width: 85, height: 85, resizeMode: 'contain'}} />
 
               <Text variant='titleLarge' style={{ fontWeight: 'bold' }}>Pay</Text>
             </View>
@@ -158,7 +175,6 @@ export default function App() {
           <View style={{ display: 'flex', flexDirection: 'row', alignSelf: 'center', paddingTop: 40 }}>
             <IconButton iconColor="#6C447C" icon="home" onPress={() => { setView("login") }} />
             <IconButton iconColor="#6C447C" icon="menu" onPress={() => { setView("login") }} />
-
           </View>
 
         </View>
@@ -196,6 +212,95 @@ export default function App() {
             {'\n'}
             Welcome back!
           </Text>
+
+          <View style={styles.amountManagerBox}>
+            <Text variant="titleMedium">
+              Frank's Report
+              {'\n'}
+            </Text>
+
+            <View style={styles.splitAmounts}>
+              <View style={styles.splitAmountItem}>
+                <Text>Total Spending</Text>
+                <Text variant="titleLarge" style={{ color: '#6C447C', fontWeight: 'bold' }}>${remainingDailyLimit}</Text>
+
+              </View>
+              <View style={styles.splitAmountItem}>
+                <Text>Daily Allowance</Text>
+                <Text variant="titleLarge" style={{ color: '#6C447C', fontWeight: 'bold' }}>${dailyLimit}</Text>
+              </View>
+            </View>
+
+            <Text variant="labelSmall" style={{ textAlign: 'right' }}> 21 Aug 2022 </Text>
+
+          </View>
+
+          <View style={styles.accountBalanceBox}>
+            <View style={styles.splitAmounts}>
+              <View style={styles.splitAmountItem}>
+                <Text variant="titleSmall">Account Balance</Text>
+              </View>
+              <View style={styles.splitAmountItem}>
+                <Text variant="titleSmall">${managedBalance}</Text>
+              </View>
+            </View>
+            <View alignItems='center'>
+              <Button mode='elevated' buttonColor='white' style={{ margin: 10 }}>
+                <Text color='black'>
+                  Manage Allowance
+                </Text>
+              </Button>
+            </View>
+          </View>
+
+          <Text variant="titleLarge" style={{ fontWeight: 'bold' }}>
+            Transaction History
+          </Text>
+
+          <View style={styles.transactionItemBox}>
+            <View style={styles.splitAmounts}>
+              <View style={styles.splitAmountItem}>
+                <Text>Groceries</Text>
+                <Text style={{ color: '#878A8B' }}>Whole Foods Market</Text>
+              </View>
+              <View style={styles.splitAmountItem}>
+                <Text style={{ color: '#F06363', textAlign: 'right', fontWeight: 'bold' }}>-$32.41</Text>
+                <Text style={{ color: '#878A8B', textAlign: 'right' }}>19 Aug 2022</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.transactionItemBox}>
+            <View style={styles.splitAmounts}>
+              <View style={styles.splitAmountItem}>
+                <Text>Bank Transfer</Text>
+                <Text style={{ color: '#878A8B' }}>Colleen Jones</Text>
+              </View>
+              <View style={styles.splitAmountItem}>
+                <Text style={{ color: '#41863B', textAlign: 'right', fontWeight: 'bold' }}>+$1000.00</Text>
+                <Text style={{ color: '#878A8B', textAlign: 'right' }}>17 Aug 2022</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.transactionItemBox}>
+            <View style={styles.splitAmounts}>
+              <View style={styles.splitAmountItem}>
+                <Text>Transportation</Text>
+                <Text style={{ color: '#878A8B' }}>Waterloo Taxi</Text>
+              </View>
+              <View style={styles.splitAmountItem}>
+                <Text style={{ color: '#F06363', textAlign: 'right', fontWeight: 'bold' }}>-$121.66</Text>
+                <Text style={{ color: '#878A8B', textAlign: 'right' }}>15 Aug 2022</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={{ display: 'flex', flexDirection: 'row', alignSelf: 'center', paddingTop: 40 }}>
+            <IconButton iconColor="#6C447C" icon="home" onPress={() => { setView("login") }} />
+            <IconButton iconColor="#6C447C" icon="menu" onPress={() => { setView("login") }} />
+          </View>
+
         </View>
       }
     </PaperProvider>
@@ -324,4 +429,60 @@ const styles = StyleSheet.create({
     paddingRight: '5%',
   },
 
+  amountManagerBox: {
+    display: 'flex',
+    width: '100%',
+    height: 'auto',
+    backgroundColor: 'white',
+
+    borderRadius: 5,
+    marginTop: 25,
+    padding: 10,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5
+  },
+
+  splitAmounts: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'flex-start',
+  },
+
+  splitAmountItem: {
+    width: '50%',
+  },
+
+  accountBalanceBox: {
+    display: 'flex',
+    width: '100%',
+    height: 'auto',
+    backgroundColor: '#F5F5F5',
+
+    borderRadius: 5,
+    marginTop: 25,
+    marginBottom: 25,
+    padding: 10,
+  },
+
+  transactionItemBox: {
+    display: 'flex',
+    width: '100%',
+    height: 'auto',
+    backgroundColor: 'white',
+
+    borderRadius: 5,
+    marginTop: 15,
+    padding: 10,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+    elevation: 5
+  },
 });
