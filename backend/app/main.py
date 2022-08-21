@@ -101,7 +101,7 @@ def make_purchase():
 
     if(remaining_spend_limit < price):
         message = twilio_client.messages.create(
-            body=f'HeimWallet: Authorize ${formatted_price} transaction from {patient_name}? Location: {address}\n\nReply YES to authorize, NO to decline',
+            body=f'HeimWallet: Authorize ${formatted_price} transaction from {patient_name}?\n\nLocation: {address}\n\nReply YES to authorize, NO to decline',
             from_=twilio_phone_number,
             to=guardian_phone_number
         )
