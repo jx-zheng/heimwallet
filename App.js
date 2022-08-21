@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Image, View } from 'react-native';
-import { Button, Provider as PaperProvider, Text, TextInput, FAB } from 'react-native-paper';
-
+import { Button, Provider as PaperProvider, Text, TextInput, IconButton } from 'react-native-paper';
 
 
 export default function App() {
@@ -11,30 +10,50 @@ export default function App() {
 
   const [test, setTest] = React.useState("");
 
-  const [view, setView] = React.useState("login"); // login, patient, guardian
+  const [view, setView] = React.useState("patient"); // login, patient, manager
 
+  // Outputs for Patient View
+  const [dailyLimit, setDailyLimit] = React.useState(0);
+
+  // API CALLS --------
+  const getDailyLimit = () => {
+    fetch('https://ht6-heimwallet.herokuapp.com/get_daily_limit?patient=fjones')
+    .then(response => response.json())
+    .then(json => {
+      console.log(json);
+      setDailyLimit(json.daily_limit);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+  };
+
+  // LOGIN / VIEW --------
   function loginAttempt() {
     if (username === "aryaman") {
-      setTest("logged in as patient");
+      // setTest("logged in as patient");
       setView("patient");
     } else if (username === "jason") {
-      setTest("logged in as guardian");
-      setView("guardian");
+      // setTest("logged in as guardian");
+      setView("manager");
     } else {
-      setTest("incorrect username/password");
+      setTest("Incorrect Username or Password!");
     }
+  }
+
+  if (view === "patient") {
+    getDailyLimit();
   }
 
   return (
     <PaperProvider>
-
-      { view=="login" &&
+      {view == "login" &&
         <View style={styles.container}>
           <Image source={require('./assets/logo.png')} style={styles.logo} />
-          <Text variant="displayLarge" style={styles.goodMorning}>
-            Login
+          <Text variant="displayMedium" style={styles.goodMorning}>
+            HeimWallet
           </Text>
-          
+
           <TextInput
             style={styles.textInput}
             label="Username"
@@ -49,52 +68,75 @@ export default function App() {
             value={password}
             onChangeText={password => setPassword(password)}
           />
-          
+
           <Button mode='contained' style={styles.loginButton} onPress={() => loginAttempt()}> Login </Button>
-          
-          <Text>
+
+          <Text style={{ alignItems: 'center', alignSelf: 'center'}}>
             {test}
           </Text>
 
           <StatusBar style="auto" />
-        </View> 
+        </View>
       }
 
-      { view=="patient" &&
+      {view == "patient" &&
         <View style={styles.patientContainer}>
           <Text variant="titleLarge" style={styles.helloText}>
-            Hi 
-            <Text style={{fontWeight: 'bold'}} > Aryaman </Text> 👋
+            Hi
+            <Text style={{ fontWeight: 'bold' }} > Aryaman </Text> 👋
             {'\n'}
             Welcome back!
           </Text>
 
           <View style={styles.amountBox}>
-            <Text variant="titleMedium" style={{ alignSelf: 'center', alignItems: 'center'}}> 
-            Available Balance
-            {'\n'}
+            <Text variant="titleMedium" style={{ alignSelf: 'center', alignItems: 'center' }}>
+              Available Balance
+              {'\n'}
             </Text>
 
-            <Text variant="titleLarge" style={{ alignSelf: 'center', alignItems: 'center'}} >
-            CAD $123
-            {'\n'}
+            <Text variant="titleLarge" style={{ alignSelf: 'center', alignItems: 'center', fontWeight: 'bold' }} >
+              CAD $123
+              {'\n'}
             </Text>
 
-            <Text variant="titleMedium" style={{ alignSelf: 'center', alignItems: 'center'}}> 
-            Daily Allowance: $1234
-            {'\n'}
+            <Text variant="titleSmall" style={{ alignSelf: 'center', alignItems: 'center' }}>
+              Daily Allowance: ${dailyLimit}
+              {'\n'}
             </Text>
           </View>
 
           <View style={styles.transferBox}>
-            
+
             <Image source={require('./assets/money.png')} />
-            
-            <Text variant='titleLarge' style={{ fontWeight: 'bold' }}>Pay</Text>  
+
+            <Text variant='titleLarge' style={{ fontWeight: 'bold' }}>Pay</Text>
+          </View>
+
+          <View style={styles.sosBox}>
+
+            <Text variant="titleMedium" style={{ alignSelf: 'center', alignItems: 'center' }}>
+              Are you in an emergency?
+              {'\n'}
+            </Text>
+
+            <Button mode='contained' buttonColor='#F06363' style={{ borderRadis: '10', width: '100%' }}>
+              <Text variant="titleMedium" style={{ fontWeight: 'bold', color: 'white' }}> Hold for SOS </Text></Button>
+            <Text />
+            <Button mode='elevated' style={{ width: '100%' }}> Send location to contacts</Button>
+
+          </View>
+
+          <View style={{ display: 'flex', flexDirection: 'row', alignSelf:'center', paddingTop: 40}}>
+          <IconButton iconColor="#6C447C" icon="home" onPress={() => {setView("login")}} />
+          <IconButton iconColor="#6C447C" icon="menu" onPress={() => {setView("login")}} />
+
           </View>
 
         </View>
-      
+      }
+
+      {view == ""
+
       }
     </PaperProvider>
   );
@@ -141,7 +183,7 @@ const styles = StyleSheet.create({
   // PATIENT
   patientContainer: {
     display: 'flex',
-    paddingTop: '10%',
+    paddingTop: '15%',
     paddingLeft: '5%',
     paddingRight: '5%',
   },
@@ -151,15 +193,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 'auto',
     backgroundColor: 'white',
-        
+
     borderRadius: 5,
-    marginTop: 15,
-    padding: 10,
-    
+    marginTop: 25,
+    padding: 5,
+
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.8,
-    shadowRadius: 4,  
+    shadowRadius: 4,
     elevation: 5
   },
 
@@ -168,18 +210,38 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 'auto',
     backgroundColor: 'white',
-    
-    borderRadius: 5,
-    marginTop: 15,
-    padding: 10,
 
-    alignSelf: 'center', 
+    borderRadius: 5,
+    marginTop: 25,
+    padding: 20,
+
+    alignSelf: 'center',
     alignItems: 'center',
-    
+
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.8,
-    shadowRadius: 4,  
+    shadowRadius: 4,
+    elevation: 5
+  },
+
+  sosBox: {
+    display: 'flex',
+    width: '100%',
+    height: 'auto',
+    backgroundColor: 'white',
+
+    borderRadius: 5,
+    marginTop: 25,
+    padding: 20,
+
+    alignSelf: 'center',
+    alignItems: 'center',
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
     elevation: 5
   }
 
