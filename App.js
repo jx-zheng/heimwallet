@@ -237,7 +237,7 @@ export default function App() {
         <TouchableWithoutFeedback onPress={() => { setView("patient") }}>
           <View style={styles.holdContainer}>
             {paymentApproved && <Image source={require('./assets/success.png')} style={{ margin: 25 }} />}
-            <Text variant="titleLarge" style={{ fontWeight: 'bold', textAlign: 'center' }} >Payment of ${transactionAmount} {paymentApproved ? "Successful!" : "Failed."}</Text>
+            <Text variant="titleLarge" style={{ fontWeight: 'bold', textAlign: 'center' }} >Payment of ${transactionAmount} {paymentApproved ? "authorized!" : "not authorized."}</Text>
           </View>
         </TouchableWithoutFeedback>
       }
@@ -259,12 +259,12 @@ export default function App() {
 
             <View style={styles.splitAmounts}>
               <View style={styles.splitAmountItem}>
-                <Text>Total Spending</Text>
+                <Text>Allowance remaining</Text>
                 <Text variant="titleLarge" style={{ color: '#6C447C', fontWeight: 'bold' }}>${remainingDailyLimit}</Text>
 
               </View>
               <View style={styles.splitAmountItem}>
-                <Text>Daily Allowance</Text>
+                <Text>Daily allowance</Text>
                 <Text variant="titleLarge" style={{ color: '#6C447C', fontWeight: 'bold' }}>${dailyLimit}</Text>
               </View>
             </View>
