@@ -79,7 +79,6 @@ def get_managed_balance():
 # Usage: /make_purchase?patient=<patient_username>&price=<int>
 @app.route("/make_purchase")
 def make_purchase():
-
     patient = request.args.get('patient')
     price = float(request.args.get('price'))
     formatted_price = "{:.2f}".format(price) 
@@ -116,6 +115,29 @@ def make_purchase():
     db_users.update_one(patient_query, new_limits_and_balance)
     return Response(f"{{\"status\": \"success\", \"remaining_spend_limit\": {formatted_rsl}, \"managed_balance\": {formatted_mab}}}", status=200, mimetype='application/json')
 
+# Usage: /check_for_auth?patient=<patient_username>
+# This endpoint is to be polled frequently, and indicates whether the transaction has been authorized/declined
+@app.route("/check_for_auth")
+def check_for_auth():
+    patient = request.args.get('patient')
+    # so, this is kinda hacky, but we're going to get the patient phone number via the users collection and then poll the pending responses off that
+    patient_record = get_patient_record(patient)
+    guardian_phone_number = patient_record["guardian_phone_number"]
+    formatted_rsl = "{:.2f}".format(patient_record["remaining_spend_limit"])
+    formatted_mab = "{:.2f}".format(patient_record["managed_account_balance"])
+
+    pending_record = get_pending_response(guardian_phone_number)
+
+    if(pending_record["status"] == "pending"):
+        return Response(f"{{\"status\": \"waiting\", \"remaining_spend_limit\": null, \"managed_balance\": null}}", status=200, mimetype='application/json')
+    elif(pending_record["status"] == "approved"):
+        return Response(f"{{\"status\": \"approved\", \"remaining_spend_limit\": {formatted_rsl}, \"managed_balance\": {formatted_mab}}}", status=200, mimetype='application/json')
+    elif(pending_record["status"] == "denied"):
+        return Response(f"{{\"status\": \"denied\", \"remaining_spend_limit\": {formatted_rsl}, \"managed_balance\": {formatted_mab}}}", status=200, mimetype='application/json')
+    else:
+        return Response("\"status\": \"we should have never gotten here..\"", status=500, mimetype='application/json')
+    
+
 # Twilio calls this function in order to report a YES or NO. !! Do not manually attempt to call this !!
 @app.route("/sms_authorize_response", methods=['GET', 'POST'])
 def sms_authorize_payment():
@@ -149,12 +171,11 @@ def sms_authorize_payment():
         db_users.update_one(patient_query, new_balance)
     elif body == 'NO':
         resp.message(f"HeimWallet: Rejected purchase of ${formatted_price}")
-        update_pending_response_status(sender, "declined")
+        update_pending_response_status(sender, "denied")
     else:
         resp.message("HeimWallet: Invalid authorization response.\n\nReply YES to authorize, NO to decline")
 
     return str(resp)
-
 
 # Internal helper function to get patient record from database
 def get_patient_record(patient):
