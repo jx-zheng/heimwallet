@@ -2,6 +2,8 @@
 
 <img width="550" alt="HeimWallet placement result slide" src="https://github.com/jx-zheng/heimwallet/assets/43159579/63bb6909-54b3-4878-992e-bfe9a18cbdaf">
 
+## Description
+
 This project was created for, and submitted to, Hack the 6ix 2022 (https://devpost.com/software/heimwallet).
 
 Watch the pitch video here: https://youtu.be/6q0U1Z_pYIY
@@ -13,3 +15,6 @@ HeimWallet is a digital banking solution that allows for **supervision** over a 
 It allows a family member or other trusted guardian to set a **daily allowance** for a patient and **keep track of their purchases**. It also allows guardians to keep tabs on the **location of patients via GPS** every time a purchase is attempted, and to authorize or refuse attempted purchases that go beyond the daily allowance. This ensures that patients and their guardians can have confidence that the patient's assets are in safe hands. Further, the daily allowance feature empowers patients to be independent and **shop with confidence**, knowing that their disease will not be able to dominate their finances.
 
 This repository contains the HeimWallet cross-platform mobile app, built with React Native. It also contains the backend, built with Flask.
+
+## Screenshots
+![HeimWallet screenshots](https://github.com/jx-zheng/heimwallet/assets/43159579/1655ef31-092d-431e-8676-ee9db759225f)
