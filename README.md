@@ -1,6 +1,10 @@
 # HeimWallet
 
+<img width="550" alt="HeimWallet placement result slide" src="https://github.com/jx-zheng/heimwallet/assets/43159579/63bb6909-54b3-4878-992e-bfe9a18cbdaf">
+
 This project was created for, and submitted to, Hack the 6ix 2022 (https://devpost.com/software/heimwallet).
+
+Watch the pitch video here: https://youtu.be/6q0U1Z_pYIY
 
 Alzheimer's disease and dementia affect many of our loved ones every year; in fact, **76,000 diagnoses** of  dementia are made every year in Canada. One of the largest issues caused by Alzheimer's is the loss of ability to make informed, cognitive decisions about their finances. This makes such patients especially vulnerable to things such as scams and high-pressure sales tactics. Here's an unfortunate real-life example of this: https://www.cbc.ca/news/business/senior-alzheimers-upsold-bell-products-source-1.6014904 We were inspired by this heartbreaking story to build HeimWallet.
 
